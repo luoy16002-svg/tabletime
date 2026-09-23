@@ -18,11 +18,11 @@ npm run build
 npm start
 ```
 
-Open **http://127.0.0.1:4318**. The display says **MCP connected** and calls the actual MCP tools with the official SDK client. Connect another Streamable HTTP MCP client to **http://127.0.0.1:4318/mcp**. Protocol negotiation is tested against **2025-11-25**.
+Open **http://127.0.0.1:4318**. The **Under the lid** panel says **MCP connected** and calls the actual MCP tools with the official SDK client. Connect another Streamable HTTP MCP client to **http://127.0.0.1:4318/mcp**. Protocol negotiation is tested against **2025-11-25**.
 
 The server deliberately binds to loopback and checks Host/Origin. It is a single-kitchen local prototype, not a public multi-tenant service. Saved plans live in `.tabletime/dinner.json`; `TABLETIME_STATE_DIR` and `PORT` can select a different local instance. No appliance is controlled.
 
-The public demo runs the **same solver and kitchen state machine in a Web Worker**, with localStorage persistence. It is labelled _Private browser demo_. GitHub Pages hosts static files; it does not host the MCP endpoint. Fonts and solver assets are bundled; no analytics or model API is called.
+The public demo runs the **same solver and kitchen state machine in a Web Worker**, with localStorage persistence. Its **Under the lid** panel is labelled _Private browser demo_. GitHub Pages hosts static files; it does not host the MCP endpoint. Fonts and solver assets are bundled; no analytics or model API is called.
 
 ## Try three things
 
@@ -74,6 +74,12 @@ The tests include an independently written exhaustive oracle: **36 small mixed-m
 | Median / p95 solve time                                          | 2,004 / 2,008 ms |
 
 The mean improvement is **4.73% against FIFO and 0.26% against the stronger multistart baseline**. This is not evidence of a large optimization breakthrough or measured time savings in real kitchens. The contribution is the constraint model, independently checked repairs and complete stateful interaction. Eight illustrative kitchen configurations are also reported, including infeasible cases. Time-limited results can vary across machines.
+
+## Interface and visual assets
+
+The interface was developed from a full-page generated UI study, then implemented as real React components. [Design study](artifacts/ui-design.png) · [Design prompt](artifacts/ui-design-prompt.txt). Actual schedule bars, status, times and proposals always come from the solver, not the design image.
+
+The five food illustrations are original generated assets, served locally as WebP (about 792 KB total). They are menu illustrations, not photographs of cooking trials. [Asset files and prompts](public/images/source.json). Desktop uses an interactive timeline; narrow screens use expandable step lists with the same real timings.
 
 ## Code map
 

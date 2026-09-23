@@ -1,0 +1,26 @@
+{
+  "tool": "Built-in imagegen",
+  "purpose": "Original illustrative food assets for Tabletime, not evidence of cooking trials.",
+  "assets": [
+    {
+      "file": "dinner-table.webp",
+      "prompt": "Use case: photorealistic-natural. Original editorial food photograph for a thoughtful home cooking app, not a UI mockup. Warm directional afternoon window light, subtle analog grain, natural imperfect handmade off-white stoneware, muted warm cream and olive palette, slightly rustic but carefully styled, magazine-quality food detail. No text, no logos, no watermarks, no people or hands. Believable delicious food, no surreal objects. Wide landscape 3:2 overhead photograph of a casual Mediterranean vegetarian dinner for four. On a pale warm limestone and oatmeal linen table: one large dark rust terracotta bowl of smoky tomato lentils with visible green-brown lentils and tomato, a separate cream platter of golden charred sliced zucchini with lemon, a smaller bowl of finely grained fluffy couscous with chopped herbs, and soft golden grilled flatbreads with brown blister marks. A cut lemon and a few sprigs of flat leaf parsley. Intimate generous spread with cropped edges, bowls clustered on right and lower portions, small calm linen area at upper left. Rich natural food colors, not overly saturated. Shoot directly overhead, every dish clearly distinct."
+    },
+    {
+      "file": "lentils.webp",
+      "prompt": "Use case: photorealistic-natural. Original editorial food photograph for a thoughtful home cooking app, not a UI mockup. Warm directional afternoon window light, subtle analog grain, natural imperfect handmade off-white stoneware, muted warm cream and olive palette, slightly rustic but carefully styled, magazine-quality food detail. No text, no logos, no watermarks, no people or hands. Believable delicious food, no surreal objects. Square tightly framed overhead photograph of smoky tomato lentil stew in a shallow cream ceramic bowl. Visible whole green-brown lentils in thick rust-red tomato sauce, a little olive oil, scattered fresh parsley leaves, generous comforting texture. Bowl mostly fills frame with a little oatmeal linen and pale limestone at the edges. One spoon partially outside bowl at bottom right. Single dish only."
+    },
+    {
+      "file": "courgettes.webp",
+      "prompt": "Use case: photorealistic-natural. Original editorial food photograph for a thoughtful home cooking app, not a UI mockup. Warm directional afternoon window light, subtle analog grain, natural imperfect handmade off-white stoneware, muted warm cream and olive palette, slightly rustic but carefully styled, magazine-quality food detail. No text, no logos, no watermarks, no people or hands. Believable delicious food, no surreal objects. Square tightly framed overhead photograph of golden pan-roasted courgette (zucchini) slices on a cream ceramic plate, lovely browned seared faces and vivid natural green skins, lemon zest, a few parsley leaves, two small lemon wedges. Plate mostly fills frame, pale limestone and softly creased oatmeal linen at edges. No meat, no pasta. Single dish only."
+    },
+    {
+      "file": "couscous.webp",
+      "prompt": "Use case: photorealistic-natural. Original editorial food photograph for a thoughtful home cooking app, not a UI mockup. Warm directional afternoon window light, subtle analog grain, natural imperfect handmade off-white stoneware, muted warm cream and olive palette, slightly rustic but carefully styled, magazine-quality food detail. No text, no logos, no watermarks, no people or hands. Believable delicious food, no surreal objects. Square tightly framed overhead photograph of herby couscous in an off-white handmade ceramic bowl. Fine tiny golden couscous grains (NOT pearl couscous), loosely fluffy, generous finely chopped parsley and mint, a little lemon zest, a teaspoon of olive oil catching light. Bowl mostly fills frame with oatmeal linen and pale limestone at edges. Single dish only, no chickpeas or large pasta."
+    },
+    {
+      "file": "flatbreads.webp",
+      "prompt": "Use case: photorealistic-natural. Original editorial food photograph for a thoughtful home cooking app, not a UI mockup. Warm directional afternoon window light, subtle analog grain, natural imperfect handmade off-white stoneware, muted warm cream and olive palette, slightly rustic but carefully styled, magazine-quality food detail. No text, no logos, no watermarks, no people or hands. Believable delicious food, no surreal objects. Square tightly framed overhead photograph of a small stack of three warm thin oval flatbreads on a cream ceramic plate. Light golden surface with irregular darker toasted blisters, soft folded edges, a few tiny parsley flecks, slightly brushed with olive oil. The top bread partly torn naturally exposing soft interior. Plate mostly fills frame, oatmeal linen and pale limestone at edges. Single dish only."
+    }
+  ]
+}

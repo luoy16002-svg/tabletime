@@ -1,27 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import {
-  ArrowUpRight,
-  ArrowRight,
-  Check,
-  Clock3,
-  Flame,
-  Hand,
-  Leaf,
-  Plus,
-  Minus,
-  Utensils,
-  Users,
-  ChevronDown,
-  ChevronRight,
-  Info,
-  LoaderCircle,
-  Unplug,
-  TimerReset,
-  CheckCircle2,
-  X,
-  Code2,
-} from "lucide-react";
+import { ArrowUpRight, ChevronDown, X } from "lucide-react";
 import "@fontsource/dm-sans/400.css";
 import "@fontsource/dm-sans/500.css";
 import "@fontsource/dm-sans/600.css";
@@ -30,6 +9,7 @@ import "@fontsource/libre-caslon-display/400.css";
 import { recipes } from "../core/recipes.js";
 import { makeClient } from "./client.js";
 import "./style.css";
+import Workspace from "./Workspace.jsx";
 
 const BASE = 18 * 60 + 30;
 const time = (m) => {
@@ -40,6 +20,7 @@ const color = (id) => recipes.find((r) => r.id === id)?.color ?? "#7c8178";
 const nameOf = (id) => recipes.find((r) => r.id === id)?.title ?? "Oven";
 
 function App() {
+  const explanation = useRef(null);
   const [client, setClient] = useState(null),
     [menu, setMenu] = useState(recipes.map((r) => r.id)),
     [cooks, setCooks] = useState(1),
@@ -59,6 +40,37 @@ function App() {
     result = shown?.result,
     problem = shown?.problem,
     now = problem?.now ?? 0;
+  useEffect(() => {
+    if (!info) return;
+    const previousFocus = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    const modal = explanation.current;
+    document.body.style.overflow = "hidden";
+    modal.querySelector("button").focus();
+    const onKey = (event) => {
+      if (event.key === "Escape") setInfo(false);
+      if (event.key !== "Tab") return;
+      const items = [...modal.querySelectorAll("button, a, summary")].filter(
+        (el) => el.offsetParent !== null,
+      );
+      const first = items[0],
+        last = items.at(-1);
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      }
+      if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKey);
+      previousFocus?.focus();
+    };
+  }, [info]);
   async function call(name, args = {}, c = client) {
     const start = performance.now();
     const r = await c.call(name, args);
@@ -185,423 +197,47 @@ function App() {
   const late = result ? Math.max(0, result.finish - (problem?.due ?? due)) : 0;
   return (
     <>
-      <header className="top">
-        <a className="brand" href="./">
-          <span className="brand-symbol">
-            <Utensils size={19} />
-          </span>
-          tabletime<span className="brand-dot">.</span>
-        </a>
-        <div className="top-right">
-          <span className="connection">
-            <i />
-            {client?.mode ?? "Opening kitchen"}
-          </span>
-          <button className="text-button" onClick={() => setInfo(true)}>
-            How it works <ArrowUpRight size={15} />
-          </button>
-        </div>
-      </header>
-      <main>
-        <section className="intro">
-          <div>
-            <p className="eyebrow">A LITTLE LESS JUGGLING</p>
-            <h1>
-              Dinner, <em>together.</em>
-            </h1>
-            <p className="intro-copy">
-              Four dishes. One kitchen. A plan that makes room for real life.
-            </p>
-          </div>
-          <div className="date-stamp">
-            <span>THE EVENING MENU</span>
-            <strong>For four, at home</strong>
-            <span className="stamp-line">Vegetarian · Made from scratch</span>
-          </div>
-        </section>
-        <div className="workspace">
-          <aside className="sidebar">
-            <div className="section-heading">
-              <span className="small-number">01</span>
-              <h2>What’s for dinner?</h2>
-            </div>
-            <p className="muted sidebar-sub">
-              Start with a dish. Make it a table.
-            </p>
-            <div className="recipe-list">
-              {recipes.map((r, i) => (
-                <button
-                  key={r.id}
-                  className={`recipe ${menu.includes(r.id) ? "chosen" : ""}`}
-                  onClick={() => toggle(r.id)}
-                  aria-pressed={menu.includes(r.id)}
-                >
-                  <span className="recipe-swatch" style={{ "--dish": r.color }}>
-                    <Leaf size={21} />
-                  </span>
-                  <span className="recipe-copy">
-                    <strong>{r.title}</strong>
-                    <small>{r.subtitle}</small>
-                  </span>
-                  <span className="recipe-check">
-                    {menu.includes(r.id) ? (
-                      <Check size={13} />
-                    ) : (
-                      <Plus size={13} />
-                    )}
-                  </span>
-                </button>
-              ))}
-            </div>
-            <div className="kitchen-settings">
-              <div className="setting">
-                <label htmlFor="ready">At the table by</label>
-                <div className="time-input">
-                  <Clock3 size={16} />
-                  <input
-                    id="ready"
-                    type="time"
-                    value={time(due)}
-                    onChange={(e) => {
-                      const [h, m] = e.target.value.split(":").map(Number);
-                      const v = h * 60 + m - BASE;
-                      if (v >= 0 && v <= 240) setDue(v);
-                    }}
-                  />
-                </div>
-              </div>
-              <div className="setting">
-                <span>
-                  <Users size={15} /> Cooks
-                </span>
-                <div className="stepper">
-                  <button
-                    aria-label="Fewer cooks"
-                    disabled={cooks <= 1 || !!busy}
-                    onClick={() => setCooks((c) => c - 1)}
-                  >
-                    <Minus size={12} />
-                  </button>
-                  <b>{cooks}</b>
-                  <button
-                    aria-label="More cooks"
-                    disabled={cooks >= 3 || !!busy}
-                    onClick={() => setCooks((c) => c + 1)}
-                  >
-                    <Plus size={12} />
-                  </button>
-                </div>
-              </div>
-              <div className="setting">
-                <span>
-                  <Flame size={15} /> Hob burners
-                </span>
-                <div className="stepper">
-                  <button
-                    aria-label="Fewer burners"
-                    disabled={hobs <= 1 || !!busy}
-                    onClick={() => setHobs((c) => c - 1)}
-                  >
-                    <Minus size={12} />
-                  </button>
-                  <b>{hobs}</b>
-                  <button
-                    aria-label="More burners"
-                    disabled={hobs >= 3 || !!busy}
-                    onClick={() => setHobs((c) => c + 1)}
-                  >
-                    <Plus size={12} />
-                  </button>
-                </div>
-              </div>
-              <div className="equipment-note">Plus one oven tray at 200°C.</div>
-            </div>
-            <button
-              className="button primary full"
-              onClick={draft}
-              disabled={!!busy || !client}
-            >
-              Plan my dinner <ArrowRight size={16} />
-            </button>
-            <p className="smallprint">
-              No account. No shopping. Just a workable plan.
-            </p>
-          </aside>
-          <section className="plan-area" aria-label="Dinner plan">
-            <div className="plan-heading">
-              <div className="section-heading">
-                <span className="small-number">02</span>
-                <h2>{preview ? "Your proposed plan" : "Your dinner plan"}</h2>
-              </div>
-              <span className={`status-pill ${preview ? "draft" : ""}`}>
-                {preview
-                  ? "READY TO REVIEW"
-                  : snapshot.active
-                    ? "SAVED IN YOUR KITCHEN"
-                    : "LET’S GET STARTED"}
-              </span>
-            </div>
-            {error && (
-              <div className="error" role="alert">
-                <Info size={18} />
-                <span>{error}</span>
-                <button aria-label="Dismiss error" onClick={() => setError("")}>
-                  <X size={15} />
-                </button>
-              </div>
-            )}
-            {failed && (
-              <div className="constraint-note" role="status">
-                <strong>Let’s change the plan, not rush the cook.</strong>
-                <p>
-                  {failed.result.status === "infeasible"
-                    ? "There isn’t a schedule that fits all the current appliance and serving-window constraints."
-                    : "The search ran out of time before finding a checked schedule."}{" "}
-                  Your saved dinner hasn’t changed.
-                </p>
-                {failed.alternative && (
-                  <button
-                    className="button secondary"
-                    onClick={() => {
-                      setPreview(failed.alternative);
-                      setFailed(null);
-                    }}
-                  >
-                    Review a verified two-cook plan <ArrowRight size={15} />
-                  </button>
-                )}
-              </div>
-            )}
-            {notice && (
-              <div className="notice" role="status">
-                <CheckCircle2 size={16} />
-                {notice}
-              </div>
-            )}
-            {result && (
-              <>
-                <div className="plan-summary">
-                  <div>
-                    <span className="eyebrow">EVERYTHING AT THE TABLE</span>
-                    <div className="serve-time">
-                      {time(result.finish)}
-                      <span className={late ? "late" : "on-time"}>
-                        {late ? `${late} min later` : "Right on time"}
-                      </span>
-                    </div>
-                    <p>
-                      {firstHands ? (
-                        <>
-                          Your next hands-on step starts at{" "}
-                          <strong>{time(firstHands.start)}</strong>.
-                        </>
-                      ) : (
-                        <>Dinner is ready to serve.</>
-                      )}
-                    </p>
-                  </div>
-                  <div className="summary-side">
-                    <span>
-                      <CheckCircle2 size={16} />
-                      Every constraint checked
-                    </span>
-                    <span>
-                      {problem.resources.hands}{" "}
-                      {problem.resources.hands === 1 ? "cook" : "cooks"} ·{" "}
-                      {problem.resources.hob} burners · {result.steps.length}{" "}
-                      steps
-                    </span>
-                    <span>
-                      {result.changed?.length
-                        ? `${result.changed.length} steps adjusted · started steps held in place`
-                        : "Appliances, attention and timing accounted for"}
-                    </span>
-                  </div>
-                </div>
-                <div className="timeline-header">
-                  <h3>A place for every step</h3>
-                  <div className="segmented" aria-label="Timeline view">
-                    <button
-                      aria-pressed={view === "dishes"}
-                      onClick={() => setView("dishes")}
-                    >
-                      By dish
-                    </button>
-                    <button
-                      aria-pressed={view === "equipment"}
-                      onClick={() => setView("equipment")}
-                    >
-                      By equipment
-                    </button>
-                  </div>
-                </div>
-                <Timeline
-                  result={result}
-                  problem={problem}
-                  previous={preview ? snapshot.active?.result : null}
-                  view={view}
-                  selected={selected}
-                  onSelect={setSelected}
-                />
-                <div className="timeline-legend">
-                  <span>
-                    <i className="legend-fill" />
-                    Cooking step
-                  </span>
-                  <span>
-                    <i className="legend-outline" />
-                    Previous position
-                  </span>
-                  <span>
-                    <i className="legend-lock" />
-                    Already started in simulation
-                  </span>
-                </div>
-                {selected && (
-                  <div className="step-detail">
-                    <span
-                      className="dish-dot"
-                      style={{ background: color(selected.recipe) }}
-                    />
-                    <div>
-                      <strong>{selected.title}</strong>
-                      <p>
-                        {time(selected.start)}–{time(selected.end)} ·{" "}
-                        {selected.end - selected.start} minutes ·{" "}
-                        {selected.mode}
-                        {selected.lanes.some((l) => l.startsWith("hands:"))
-                          ? " · Needs your attention"
-                          : " · Hands free"}
-                      </p>
-                    </div>
-                    <button
-                      aria-label="Close step details"
-                      onClick={() => setSelected(null)}
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                )}
-                {preview ? (
-                  <div className="review-strip">
-                    <div>
-                      <strong>
-                        {snapshot.active
-                          ? "A change you can check first."
-                          : "Looks like dinner."}
-                      </strong>
-                      <p>
-                        {snapshot.active
-                          ? "Your saved plan stays put until you use this one."
-                          : "Review the timings, then make this your plan."}
-                      </p>
-                    </div>
-                    <button
-                      className="button primary"
-                      onClick={() => accept()}
-                      disabled={!!busy}
-                    >
-                      Use this plan <Check size={16} />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="next-strip">
-                    <span className="next-label">UP NEXT</span>
-                    <div>
-                      <strong>
-                        {firstHands?.title ?? "Bring everyone to the table"}
-                      </strong>
-                      <p>
-                        {firstHands
-                          ? `${time(firstHands.start)} · ${firstHands.end - firstHands.start} minutes`
-                          : "Enjoy the evening."}
-                      </p>
-                    </div>
-                    <Hand size={23} />
-                  </div>
-                )}
-              </>
-            )}
-            {!result && !busy && (
-              <div className="empty">
-                <Utensils size={36} />
-                <h3>Your table starts here.</h3>
-                <p>Pick a few dishes and we’ll find room for them.</p>
-              </div>
-            )}
-            <div className="busy-strip" role="status" aria-live="polite">
-              {busy ? (
-                <>
-                  <LoaderCircle size={16} className="spin" />
-                  {busy}
-                </>
-              ) : (
-                <>
-                  <span className="quiet-dot" />
-                  Timings are estimates. Adjust them to your kitchen.
-                </>
-              )}
-            </div>
-            <div className="change-section">
-              <div>
-                <h3>And when life happens?</h3>
-                <p>
-                  Try a change. Review the repair before it becomes your plan.
-                </p>
-              </div>
-              <div className="change-actions">
-                <button
-                  disabled={
-                    !!busy ||
-                    !snapshot.active?.result.steps.some(
-                      (s) => s.id === "lentils_simmer",
-                    )
-                  }
-                  onClick={() => repair("delay")}
-                >
-                  <TimerReset size={17} />
-                  <span>
-                    Lentils need 8 more minutes
-                    <small>Advance the demo to simmering</small>
-                  </span>
-                  <ChevronRight size={15} />
-                </button>
-                <button
-                  disabled={!!busy || !snapshot.active}
-                  onClick={() => repair("oven")}
-                >
-                  <Unplug size={17} />
-                  <span>
-                    The oven isn’t available
-                    <small>Check the hob alternatives</small>
-                  </span>
-                  <ChevronRight size={15} />
-                </button>
-                <button
-                  disabled={!!busy || !snapshot.active}
-                  onClick={() => repair("help")}
-                >
-                  <Users size={17} />
-                  <span>
-                    I have another pair of hands
-                    <small>Plan for two cooks</small>
-                  </span>
-                  <ChevronRight size={15} />
-                </button>
-              </div>
-            </div>
-          </section>
-        </div>
-        <footer className="footer">
-          <span>Made for the part of cooking the recipe leaves out.</span>
-          <button className="text-button" onClick={() => setInfo(true)}>
-            Under the lid <Code2 size={15} />
-          </button>
-        </footer>
-      </main>
+      <Workspace
+        {...{
+          client,
+          menu,
+          cooks,
+          hobs,
+          due,
+          snapshot,
+          preview,
+          busy,
+          error,
+          failed,
+          selected,
+          view,
+          notice,
+          result,
+          problem,
+          firstHands,
+          late,
+          time,
+          color,
+          setInfo,
+          toggle,
+          setCooks,
+          setHobs,
+          setDue,
+          draft,
+          accept,
+          repair,
+          setError,
+          setFailed,
+          setPreview,
+          setSelected,
+          setView,
+          Timeline,
+        }}
+      />
       {info && (
         <div className="modal-backdrop" onClick={() => setInfo(false)}>
           <section
+            ref={explanation}
             className="modal"
             role="dialog"
             aria-modal="true"
@@ -656,7 +292,12 @@ function App() {
               import, live appliance control, sensors, or Alexa certification.
               Recipe timings and serving windows are illustrative. Advancing the
               clock simulates following the plan; it does not observe real
-              cooking.
+              cooking. Food images are generated illustrations of the example
+              menu.
+            </p>
+            <p className="connection">
+              <span className="quiet-dot" />
+              {client?.mode ?? "Opening kitchen"}
             </p>
             <details>
               <summary>
@@ -688,11 +329,14 @@ function App() {
 
 function Timeline({ result, problem, previous, view, selected, onSelect }) {
   const finish = Math.max(result.finish, problem.due, 1),
-    width = 820,
-    left = 136,
-    right = 20,
+    width = 1000,
+    left = 204,
+    right = 28,
     plot = width - left - right;
-  const recipeIds = [...new Set(result.steps.map((s) => s.recipe ?? "oven"))];
+  const present = new Set(result.steps.map((s) => s.recipe ?? "oven"));
+  const recipeIds = [...recipes.map((r) => r.id), "oven"].filter((id) =>
+    present.has(id),
+  );
   const rows =
     view === "dishes"
       ? recipeIds.map((id) => ({
@@ -714,8 +358,8 @@ function Timeline({ result, problem, previous, view, selected, onSelect }) {
             })),
           ),
         ];
-  const rowH = 53,
-    top = 32,
+  const rowH = 62,
+    top = 38,
     height = top + rows.length * rowH + 14,
     x = (v) => left + (plot * v) / finish;
   const ticks = Array.from(
@@ -723,132 +367,236 @@ function Timeline({ result, problem, previous, view, selected, onSelect }) {
     (_, i) => i * 10,
   );
   return (
-    <div className="timeline-scroll">
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        role="img"
-        aria-label={`Cooking schedule finishing at ${time(result.finish)}. Click a step for details.`}
-        className="timeline"
-      >
-        <defs>
-          <pattern
-            id="started-pattern"
-            width="5"
-            height="5"
-            patternUnits="userSpaceOnUse"
-          >
-            <path d="M0 5L5 0" stroke="white" strokeOpacity=".26" />
-          </pattern>
-        </defs>
-        {ticks.map((t) => (
-          <g key={t}>
-            <line
-              x1={x(t)}
-              x2={x(t)}
-              y1={top - 6}
-              y2={height - 9}
-              stroke="#e6e6de"
-              strokeDasharray="2 4"
-            />
-            <text x={x(t)} y={15} textAnchor="middle" className="tick">
-              {time(t)}
-            </text>
-          </g>
+    <>
+      <div className="mobile-schedule" aria-label="Cooking steps">
+        {rows.map((row, index) => (
+          <details key={`${view}-${row.id}`} open={index === 0}>
+            <summary>
+              {view === "dishes" && row.id !== "oven" && (
+                <img
+                  src={`./images/${row.id}.webp`}
+                  alt=""
+                  width="32"
+                  height="32"
+                />
+              )}
+              <span>
+                {row.label}
+                <small>
+                  {row.steps.length} {row.steps.length === 1 ? "step" : "steps"}
+                </small>
+              </span>
+              <ChevronDown size={15} />
+            </summary>
+            <div className="mobile-steps">
+              {[...row.steps]
+                .sort((a, b) => a.start - b.start)
+                .map((step) => (
+                  <button
+                    key={step.id}
+                    onClick={() => onSelect(step)}
+                    className={selected?.id === step.id ? "selected" : ""}
+                    style={{ "--dish": color(step.recipe) }}
+                  >
+                    <time>{time(step.start)}</time>
+                    <span>
+                      {step.title}
+                      <small>
+                        {step.end - step.start} min · {step.mode}
+                        {problem.tasks.find((t) => t.id === step.id)?.fixed
+                          ? " · Started in simulation"
+                          : ""}
+                      </small>
+                    </span>
+                  </button>
+                ))}
+            </div>
+          </details>
         ))}
-        {rows.map((row, i) => (
-          <g key={row.id}>
-            <text x={0} y={top + i * rowH + 22} className="row-name">
-              {row.label.length > 19 ? row.label.slice(0, 18) + "…" : row.label}
-            </text>
-            <line
-              x1={left}
-              x2={width - right}
-              y1={top + i * rowH + 40}
-              y2={top + i * rowH + 40}
-              stroke="#efefe8"
-            />
-            {row.steps.map((s) => {
-              const y = top + i * rowH + 4,
-                w = Math.max(3, x(s.end) - x(s.start) - 2),
-                old = previous?.steps.find((o) => o.id === s.id),
-                fixed = problem.tasks.find((t) => t.id === s.id)?.fixed;
-              return (
-                <g
-                  key={s.id}
-                  tabIndex={0}
-                  role="button"
-                  aria-label={`${s.title}, ${time(s.start)} to ${time(s.end)}`}
-                  onClick={() => onSelect(s)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      onSelect(s);
-                    }
-                  }}
-                  className="step-bar"
-                >
-                  <title>
-                    {s.title} · {time(s.start)}–{time(s.end)} · {s.mode}
-                  </title>
-                  {old && old.start !== s.start && (
-                    <rect
-                      x={x(old.start)}
-                      y={y + 2}
-                      width={Math.max(3, x(old.end) - x(old.start) - 2)}
-                      height={27}
-                      fill="none"
-                      stroke={color(s.recipe)}
-                      strokeDasharray="3 3"
-                      opacity=".45"
-                    />
-                  )}
-                  <rect
-                    x={x(s.start)}
-                    y={y}
-                    width={w}
-                    height={31}
-                    rx={4}
-                    fill={color(s.recipe)}
-                    stroke={selected?.id === s.id ? "#282d22" : "transparent"}
-                    strokeWidth={2}
+      </div>
+      <div className="timeline-scroll">
+        <svg
+          viewBox={`0 0 ${width} ${height}`}
+          role="group"
+          aria-label={`Cooking schedule finishing at ${time(result.finish)}. Click a step for details.`}
+          className="timeline"
+        >
+          <defs>
+            <clipPath id="dish-thumb">
+              <circle cx="19" cy="19" r="19" />
+            </clipPath>
+            <pattern
+              id="started-pattern"
+              width="5"
+              height="5"
+              patternUnits="userSpaceOnUse"
+            >
+              <path d="M0 5L5 0" stroke="white" strokeOpacity=".26" />
+            </pattern>
+          </defs>
+          {ticks.map((t) => (
+            <g key={t}>
+              <line
+                x1={x(t)}
+                x2={x(t)}
+                y1={top - 6}
+                y2={height - 9}
+                stroke="#e0e4d6"
+                strokeDasharray="2 4"
+              />
+              <text
+                x={x(t)}
+                y={15}
+                textAnchor="middle"
+                className="tick"
+                style={{
+                  fill: "#7f8576",
+                  fontSize: 12,
+                  fontFamily: "DM Sans, sans-serif",
+                }}
+              >
+                {time(t)}
+              </text>
+            </g>
+          ))}
+          {rows.map((row, i) => (
+            <g key={row.id}>
+              {view === "dishes" && row.id !== "oven" && (
+                <g transform={`translate(0,${top + i * rowH + 1})`}>
+                  <image
+                    href={`./images/${row.id}.webp`}
+                    width="38"
+                    height="38"
+                    clipPath="url(#dish-thumb)"
                   />
-                  {fixed && (
+                </g>
+              )}
+              <text
+                x={view === "dishes" && row.id !== "oven" ? 50 : 0}
+                y={top + i * rowH + 17}
+                className="row-name"
+                style={{
+                  fill: "#35452f",
+                  fontSize: 12.5,
+                  fontWeight: 500,
+                  fontFamily: "DM Sans, sans-serif",
+                }}
+              >
+                {row.label}
+              </text>
+              <text
+                x={view === "dishes" && row.id !== "oven" ? 50 : 0}
+                y={top + i * rowH + 33}
+                className="row-subtitle"
+                style={{
+                  fill: "#89907e",
+                  fontSize: 10,
+                  fontFamily: "DM Sans, sans-serif",
+                }}
+              >
+                {row.steps.length} {row.steps.length === 1 ? "step" : "steps"}
+              </text>
+              <line
+                x1={left}
+                x2={width - right}
+                y1={top + i * rowH + 48}
+                y2={top + i * rowH + 48}
+                stroke="#eeeee5"
+              />
+              {row.steps.map((s) => {
+                const y = top + i * rowH + 4,
+                  w = Math.max(3, x(s.end) - x(s.start) - 2),
+                  old = previous?.steps.find((o) => o.id === s.id),
+                  fixed = problem.tasks.find((t) => t.id === s.id)?.fixed;
+                return (
+                  <g
+                    key={s.id}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`${s.title}, ${time(s.start)} to ${time(s.end)}`}
+                    onClick={() => onSelect(s)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        onSelect(s);
+                      }
+                    }}
+                    className="step-bar"
+                  >
+                    <title>
+                      {s.title} · {time(s.start)}–{time(s.end)} · {s.mode}
+                    </title>
+                    {old && old.start !== s.start && (
+                      <rect
+                        x={x(old.start)}
+                        y={y + 2}
+                        width={Math.max(3, x(old.end) - x(old.start) - 2)}
+                        height={27}
+                        fill="none"
+                        stroke={color(s.recipe)}
+                        strokeDasharray="3 3"
+                        opacity=".45"
+                      />
+                    )}
                     <rect
                       x={x(s.start)}
                       y={y}
                       width={w}
-                      height={31}
-                      rx={4}
-                      fill="url(#started-pattern)"
+                      height={34}
+                      rx={5}
+                      fill={color(s.recipe)}
+                      stroke={selected?.id === s.id ? "#282d22" : "transparent"}
+                      strokeWidth={2}
                     />
-                  )}
-                  {w > 38 && (
-                    <text x={x(s.start) + 7} y={y + 19} className="bar-text">
-                      {s.end - s.start}m
-                    </text>
-                  )}
-                </g>
-              );
-            })}
-          </g>
-        ))}
-        {problem.now > 0 && (
-          <g>
-            <line
-              x1={x(problem.now)}
-              x2={x(problem.now)}
-              y1={top - 6}
-              y2={height - 4}
-              stroke="#343f30"
-              strokeWidth={1.5}
-            />
-            <text x={x(problem.now) + 5} y={height - 1} className="now-label">
-              Demo now {time(problem.now)}
-            </text>
-          </g>
-        )}
-      </svg>
-    </div>
+                    {fixed && (
+                      <rect
+                        x={x(s.start)}
+                        y={y}
+                        width={w}
+                        height={34}
+                        rx={5}
+                        fill="url(#started-pattern)"
+                      />
+                    )}
+                    {w > 38 && (
+                      <text
+                        x={x(s.start) + 7}
+                        y={y + 21}
+                        className="bar-text"
+                        style={{
+                          fill: "#fffaf0",
+                          fontSize: 12,
+                          fontWeight: 500,
+                          fontFamily: "DM Sans, sans-serif",
+                        }}
+                      >
+                        {w > 98 ? `${s.title.split(" ")[0]} · ` : ""}
+                        {s.end - s.start}m
+                      </text>
+                    )}
+                  </g>
+                );
+              })}
+            </g>
+          ))}
+          {problem.now > 0 && (
+            <g>
+              <line
+                x1={x(problem.now)}
+                x2={x(problem.now)}
+                y1={top - 6}
+                y2={height - 4}
+                stroke="#343f30"
+                strokeWidth={1.5}
+              />
+              <text x={x(problem.now) + 5} y={height - 1} className="now-label">
+                Demo now {time(problem.now)}
+              </text>
+            </g>
+          )}
+        </svg>
+      </div>
+    </>
   );
 }
 

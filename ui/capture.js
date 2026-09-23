@@ -6,7 +6,7 @@ const panel = document.createElement("div");
 panel.style.cssText =
   "position:fixed;bottom:8px;left:8px;z-index:50;background:white;border:1px solid #888;padding:8px;display:flex;gap:8px;font:12px system-ui;box-shadow:0 2px 10px #0002";
 panel.innerHTML =
-  '<input aria-label="Recording caption" style="width:460px" placeholder="English caption"><button id="record-start">Start recording</button><button id="record-stop" disabled>Stop & download</button><button id="record-still">Save screenshot</button><span role="status">Ready</span>';
+  '<input aria-label="Recording caption" style="width:360px" placeholder="English caption"><button id="record-start">Start recording</button><button id="record-stop" disabled>Stop & download</button><button id="record-still">Save screenshot</button><button id="record-full">Save full page</button><span role="status">Ready</span>';
 document.body.append(panel);
 const caption = panel.querySelector("input"),
   status = panel.querySelector("[role=status]");
@@ -144,6 +144,21 @@ panel.querySelector("#record-still").onclick = async () => {
     await renderFrame(false);
     canvas.toBlob((b) => download(b, `tabletime-screen-${Date.now()}.png`));
     status.textContent = "Screenshot downloaded";
+  } catch (e) {
+    status.textContent = e.message;
+  }
+};
+panel.querySelector("#record-full").onclick = async () => {
+  try {
+    await document.fonts.ready;
+    const root = document.getElementById("root");
+    const shot = await toCanvas(root, {
+      fontEmbedCSS: await getFontEmbedCSS(root),
+      pixelRatio: 1,
+      backgroundColor: "#f7f5ef",
+    });
+    shot.toBlob((blob) => download(blob, `tabletime-full-${Date.now()}.png`));
+    status.textContent = "Full page downloaded";
   } catch (e) {
     status.textContent = e.message;
   }
