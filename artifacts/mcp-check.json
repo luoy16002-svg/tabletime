@@ -1,0 +1,15 @@
+{
+  "protocol": "2025-11-25",
+  "transport": "Streamable HTTP",
+  "tools": 5,
+  "checks": [
+    "official SDK client connects",
+    "cross-origin request rejected",
+    "proposal does not commit",
+    "duplicate confirmation idempotent",
+    "stale confirmation rejected",
+    "delay preserves started steps",
+    "restart preserves confirmed dinner"
+  ],
+  "passed": true
+}

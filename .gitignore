@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.tabletime/
+artifacts/*.mp4
+artifacts/*.webm
+*.log
+.env*
+artifacts/contact-sheet.png
+artifacts/video-check.png
