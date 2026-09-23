@@ -2,7 +2,9 @@
 
 **Dinner, together.** Four dishes share a cook, two burners and one oven. Tabletime finds a schedule, checks it independently, and repairs the remaining work when something changes.
 
-[Try the browser demo](https://luoy16002-svg.github.io/tabletime/) · [Source](https://github.com/luoy16002-svg/tabletime)
+[Try the browser demo](https://luoy16002-svg.github.io/tabletime/) · [Watch the working demo](https://youtu.be/cwVDQgNiUis) · [Source](https://github.com/luoy16002-svg/tabletime)
+
+![The Tabletime kitchen display](artifacts/dinner.png)
 
 Built during September 2026 for the Alexa+ track of the Amazon Developer Hackathon. The entry uses the **self-hosted MCP server** path. It does not claim Alexa certification or an integration tested on an Echo device.
 
@@ -83,4 +85,17 @@ The optional `?capture=1` recorder captures this app's rendered DOM to a silent 
 
 Integer-minute timing; at most 48 tasks; fixed recipe assumptions and conservative oven preheating. The time-advance control simulates all steps whose planned start has passed. A real cooking companion needs explicit observed step completion, tested recipes, variable oven temperatures, authentication and per-household storage before wider deployment. No real cooking trials or user outcome study have been run.
 
-MIT for this project's code. Dependency notices and bundled font licenses are in the installed packages; React, Express, HiGHS, the MCP SDK, Zod, Lucide, html-to-image and Fontsource retain their respective licenses.
+## Integration friction log
+
+These are observations from this build, not reports of an Amazon service outage. No Amazon device or hosted Alexa runtime was used.
+
+| Attempt and reproduction | Expected / observed | Severity and workaround | Actionable improvement |
+|---|---|---|---|
+| Load the same HiGHS package in Node and a Vite Web Worker; run `npm run build`. | Expected an unambiguous browser entry. Vite reports `node:module` externalized for browser compatibility, although the browser WASM path works. | Low; use explicit worker/WASM asset URLs and verify the deployed worker independently. | HiGHS packaging could expose a browser-only entry and a current Vite worker example. |
+| Install on Windows with the machine's configured npm mirror, commit the lockfile, then run `npm ci` on a clean GitHub runner. | Local installation succeeded. Clean CI failed with `Invalid Version:`; inspection found an optional Rolldown binding entry without a version. | High for reproducibility; generate the lockfile in an empty directory against the official registry, pin the project registry, then verify both Linux and Windows CI. The failure was an install/lockfile issue, not an MCP defect. | npm could identify the exact invalid lockfile entry in the error. CI should always include clean installs on the target platforms. |
+| Bundle the React display with Lucide in Vite 8.3.0. | Expected a quiet build. Rolldown warns that dependency-level `use client` directives may not be preserved in this client-only app. | Low; inspect the warning and verify the client build. No directive stripping or global warning suppression was needed. | Distinguish harmless client-only dependency directives from server/client boundary errors in bundler diagnostics. |
+| Connect an official MCP client, create a proposal, confirm it, retry the confirmation, then restart the server. | MCP transports the calls successfully, but application durability and confirmation semantics still need explicit implementation. This is a design boundary, not an SDK bug. | Important integration work; persisted revisions, proposals and bounded idempotency receipts are implemented and exercised by `npm run test:mcp`. | A reference example for stateful consumer workflows should include proposal/confirm, duplicate retries, stale confirmations and restart recovery together. |
+
+Feature requests: **Important** — a small device-independent Alexa+ MCP conformance harness with exact protocol negotiation, confirmation UI behavior and reconnect/retry cases. **Nice-to-have** — a maintained browser display example sharing a schema with a self-hosted MCP server. These would help validate the consumer experience before device testing; neither is claimed to be an existing product defect.
+
+MIT for this project's code. Dependency notices and bundled font licenses are preserved in [THIRD_PARTY_LICENSES.txt](public/THIRD_PARTY_LICENSES.txt) and the installed packages; React, Express, HiGHS, the MCP SDK, Zod, Lucide, html-to-image and Fontsource retain their respective licenses.
