@@ -2,7 +2,7 @@
 
 **Dinner, together.** Four dishes share a cook, two burners and one oven. Tabletime finds a schedule, checks it independently, and repairs the remaining work when something changes.
 
-[Try the browser demo](https://luoy16002-svg.github.io/tabletime/) · [Watch the working demo](https://youtu.be/cwVDQgNiUis) · [Source](https://github.com/luoy16002-svg/tabletime)
+[Try the browser demo](https://luoy16002-svg.github.io/tabletime/) · [Watch the working demo](https://youtu.be/MQEYI8HHiVQ) · [Source](https://github.com/luoy16002-svg/tabletime)
 
 ![The Tabletime kitchen display](artifacts/dinner.png)
 
